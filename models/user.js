@@ -28,6 +28,16 @@ const userSchema  = mongoose.Schema({
             message: "Password muct be at least 8 char long"
         }
     },
+
+    borrowedBookIds: {
+        type:[String],
+        default:[],
+    },
+
+    profilePic:{
+        type: String,
+        default:""
+    },
     state:{
         type:String,
         default:""

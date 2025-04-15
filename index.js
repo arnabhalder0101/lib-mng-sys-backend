@@ -2,6 +2,8 @@
 const express = require('express');
 const helloRouter = require('./routes/hello');
 const authRouter = require('./routes/auth');
+const operationRouter = require('./routes/operations')
+
 const user = require('./models/user')
 
 
@@ -23,10 +25,11 @@ app.use(express.json())
 
 app.use(helloRouter);
 app.use(authRouter);
+app.use(operationRouter);
 
 mongoose.connect(DB).then(()=>{
     console.log('Mongo DB connected')
-})
+});
 
 // start the server && listen on the port
 app.listen(PORT, "0.0.0.0", function (){
