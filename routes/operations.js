@@ -101,7 +101,7 @@ operationRoute.post("/api/books/add", async (req, res) => {
 // show all books
 operationRoute.get("/api/books/all", async (req, res) => {
   try {
-    let books = await Book.find();
+    let books = await Book.find(); // returns a []
     let count = books.length;
     if (count > 0) {
       return res.status(200).json({ msg: `books found`, count, books });
@@ -117,7 +117,7 @@ operationRoute.get("/api/books/all", async (req, res) => {
 operationRoute.get("/api/books/:bookId", async (req, res) => {
   try {
     const { bookId } = req.params;
-    let book = await Book.findOne({ bookId });
+    let book = await Book.findOne({ bookId });  // return a obj..or null
     if (!book) {
       return res.status(400).json({ msg: `book ${bookId} not found` });
     } else {
@@ -175,12 +175,13 @@ operationRoute.get("/api/books", async (req, res) => {
   const { bookId } = req.body;
   try {
     let result = await User.find({ borrowedBookIds: bookId });
-    if (result) {
+    let count = result.length;
+    if (count>0) {
       res
         .status(200)
-        .json({ msg: `users with bookId: ${bookId} found`, user: result });
+        .json({ msg: `users with bookId:${bookId} found`, count, user: result });
     } else {
-      res.status(400).json({ msg: "book not found", user: result });
+      res.status(400).json({ msg: "not found", count, user: result });
     }
   } catch (error) {
     res.status(500).json({ msg: error.message });
