@@ -98,7 +98,60 @@ operationRoute.post("/api/books/add", async (req, res) => {
   }
 });
 
-//
+// show all books
+operationRoute.get("/api/books/all", async (req, res) => {
+  try {
+    let books = await Book.find();
+    let count = books.length;
+    if (count > 0) {
+      return res.status(200).json({ msg: `books found`, count, books });
+    } else {
+      return res.status(400).json({ msg: "Not Found", books });
+    }
+  } catch (error) {
+    return res.status(500).json({ msg: error.message });
+  }
+});
+
+//show book by book id--
+operationRoute.get("/api/books/:bookId", async (req, res) => {
+  try {
+    const { bookId } = req.params;
+    let book = await Book.findOne({ bookId });
+    if (!book) {
+      return res.status(400).json({ msg: `book ${bookId} not found` });
+    } else {
+      return res.status(200).json({ msg: `book found`, book });
+    }
+  } catch (error) {
+    return res.status(500).json({ msg: error.message });
+  }
+});
+
+// return book
+operationRoute.post("/api/return", async (req, res) => {
+  try {
+    const { email, bookId } = req.body;
+
+    // removing from user --
+    let result = await User.updateOne(
+      { email: email },
+      { $pull: { borrowedBookIds: bookId } }
+    );
+    if (result.modifiedCount > 0) {
+      // returning/ adding +1 to shelf
+      await Book.updateOne({ bookId: bookId }, { $inc: { quantity: 1 } });
+
+      return res
+        .status(200)
+        .json({ msg: `book ${bookId} returned to shelf` }, result);
+    } else {
+      return res.status(400).json({ msg: "not found", result });
+    }
+  } catch (error) {
+    return res.status(500).json({ msg: error.message });
+  }
+});
 
 // admin Feature-->
 // find a user with email id(that is library user id)
@@ -134,26 +187,41 @@ operationRoute.get("/api/books", async (req, res) => {
   }
 });
 
+//admin-->
+// show all users
+operationRoute.get("/api/users/all", async (req, res) => {
+  try {
+    let result = await User.find();
+    let count = result.length;
+    if (count > 0) {
+      res.status(200).json({ msg: `users found`, count, users: result });
+    } else {
+      res.status(400).json({ msg: "not found", user: result });
+    }
+  } catch (error) {
+    res.status(500).json({ msg: error.message });
+  }
+});
 
 // method book id increment
 const generateNextBookId = async () => {
-    // Get the last added book sorted by `bookId` in descending order
-    const lastBook = await Book.findOne().sort({ bookId: -1 });
-    
-    if (!lastBook) {
-        return "B@001"; // First book
-    }
-    
-    const lastId = lastBook.bookId; // e.g., B@009
-    
-    // Extract the number part and increment it
-    const number = parseInt(lastId.split("@")[1]); // 9
-    const nextNumber = number + 1;
-    
-    // Format with leading zeros
-    const padded = String(nextNumber).padStart(3, "0"); // 010
-    
-    return `B@${padded}`; // B@010
+  // Get the last added book sorted by `bookId` in descending order
+  const lastBook = await Book.findOne().sort({ bookId: -1 });
+
+  if (!lastBook) {
+    return "B@001"; // First book
+  }
+
+  const lastId = lastBook.bookId; // e.g., B@009
+
+  // Extract the number part and increment it
+  const number = parseInt(lastId.split("@")[1]); // 9
+  const nextNumber = number + 1;
+
+  // Format with leading zeros
+  const padded = String(nextNumber).padStart(3, "0"); // 010
+
+  return `B@${padded}`; // B@010
 };
 
 module.exports = operationRoute;
