@@ -9,6 +9,9 @@ const operationRoute = express.Router();
 operationRoute.post("/api/books/take", async (req, res) => {
   const { email, bookId } = req.body;
 
+  if (!email || !bookId ) {
+    return res.status(400).json({ msg: "email, bookId -> this fields are needed" });
+  }
   try {
     let book = await Book.findOne({ bookId: bookId });
     let user = await User.findOne({ email: email });
@@ -63,6 +66,10 @@ operationRoute.post("/api/books/take", async (req, res) => {
 operationRoute.post("/api/books/add", async (req, res) => {
   const { bookName, bookAuthor, quantity } = req.body;
 
+  if (!bookName || !bookAuthor || quantity === undefined) {
+    return res.status(400).json({ msg: "bookName, bookAuthor, quantity -> fields are required" });
+  }
+
   let name = bookName.toUpperCase();
   let author = bookAuthor.toUpperCase();
 
@@ -89,7 +96,9 @@ operationRoute.post("/api/books/add", async (req, res) => {
 
       await newBook.save();
 
-      res.status(201).json({ msg: `book ${bookName} is successfully added` });
+      res
+        .status(201)
+        .json({ msg: `book ${bookName} is successfully added`, book: newBook });
     }
   } catch (error) {
     res.status(500).json({
@@ -117,7 +126,7 @@ operationRoute.get("/api/books/all", async (req, res) => {
 operationRoute.get("/api/books/:bookId", async (req, res) => {
   try {
     const { bookId } = req.params;
-    let book = await Book.findOne({ bookId });  // return a obj..or null
+    let book = await Book.findOne({ bookId }); // return a obj..or null
     if (!book) {
       return res.status(400).json({ msg: `book ${bookId} not found` });
     } else {
@@ -132,7 +141,10 @@ operationRoute.get("/api/books/:bookId", async (req, res) => {
 operationRoute.post("/api/return", async (req, res) => {
   try {
     const { email, bookId } = req.body;
-
+ 
+  if (!email || !bookId ) {
+    return res.status(400).json({ msg: "email, bookId -> this fields are needed" });
+  }
     // removing from user --
     let result = await User.updateOne(
       { email: email },
@@ -157,6 +169,10 @@ operationRoute.post("/api/return", async (req, res) => {
 // find a user with email id(that is library user id)
 operationRoute.get("/api/users", async (req, res) => {
   const { email } = req.body;
+  
+  if (!email ) {
+    return res.status(400).json({ msg: "email -> this field is needed" });
+  }
   try {
     let result = await User.findOne({ email });
     if (result) {
@@ -173,13 +189,21 @@ operationRoute.get("/api/users", async (req, res) => {
 // find all users who took a book by --> book id
 operationRoute.get("/api/books", async (req, res) => {
   const { bookId } = req.body;
+  
+  if ( !bookId ) {
+    return res.status(400).json({ msg: "bookId -> this field is needed" });
+  }
   try {
     let result = await User.find({ borrowedBookIds: bookId });
     let count = result.length;
-    if (count>0) {
+    if (count > 0) {
       res
         .status(200)
-        .json({ msg: `users with bookId:${bookId} found`, count, user: result });
+        .json({
+          msg: `users with bookId:${bookId} found`,
+          count,
+          user: result,
+        });
     } else {
       res.status(400).json({ msg: "not found", count, user: result });
     }
