@@ -1,13 +1,12 @@
 const express = require("express");
 const User = require("../models/user");
+const Book = require("../models/book");
 const e = require("express");
 
 const operationRoute = express.Router();
 
-
 // add book to a user by their email
-operationRoute.post("/api/add/book", async (req, res) => {
-  
+operationRoute.post("/api/book/take", async (req, res) => {
   const { email, bookId } = req.body;
 
   try {
@@ -15,8 +14,29 @@ operationRoute.post("/api/add/book", async (req, res) => {
       { email: email },
       { $addToSet: { borrowedBookIds: bookId } }
     );
+
+    let book = await Book.findOne({ bookId: bookId });
+
+    if (!book) {
+      return res.status(404).json({ msg: "Book not found" });
+    }
+
+    if (book.quantity <= 0) {
+      return res.status(400).json({ msg: "No copies left to borrow" });
+    }
+
     if (result.modifiedCount > 0) {
-      res.status(201).json({ msg: `book added with id: ${bookId}`, result });
+      await Book.updateOne({ bookId: bookId }, { $inc: { quantity: -1 } });
+    
+      book = await Book.findOne({
+        bookId: bookId,
+      });
+
+      return res.status(201).json({
+        msg: `book added to user with id: ${bookId}`,
+        result,
+        book,
+      });
     } else {
       res
         .status(400)
@@ -27,6 +47,48 @@ operationRoute.post("/api/add/book", async (req, res) => {
   }
 });
 
+// add book --
+operationRoute.post("/api/book/add", async (req, res) => {
+  const { bookName, bookAuthor, quantity } = req.body;
+
+  let name = bookName.toUpperCase();
+  let author = bookAuthor.toUpperCase();
+
+  try {
+    const existingBook = await Book.findOne({
+      bookName: name,
+      bookAuthor: author,
+    });
+
+    if (existingBook) {
+      res.status(400).json({
+        msg: `${bookName}, written by ${bookAuthor} already exists`,
+        book: existingBook,
+      });
+    } else {
+      const bookId = await generateNextBookId();
+
+      const newBook = new Book({
+        bookId,
+        bookName: name,
+        bookAuthor: author,
+        quantity,
+      });
+
+      await newBook.save();
+
+      res.status(201).json({ msg: `book ${bookName} is successfully added` });
+    }
+  } catch (error) {
+    res.status(500).json({
+      msg: error.message,
+    });
+  }
+});
+
+//
+
+// admin -->
 // find a user with user id
 operationRoute.get("/api/users", async (req, res) => {
   const { id } = req.body;
@@ -38,23 +100,47 @@ operationRoute.get("/api/users", async (req, res) => {
       res.status(400).json({ msg: "user not found", user: result });
     }
   } catch (error) {
-    res.status(500).json({msg: error.message});
+    res.status(500).json({ msg: error.message });
   }
 });
 
+// admin -->
 // find all users who took a book by --> book id
 operationRoute.get("/api/books", async (req, res) => {
   const { bookId } = req.body;
   try {
     let result = await User.find({ borrowedBookIds: bookId });
     if (result) {
-      res.status(200).json({ msg: `users with bookId: ${bookId} found`, user: result });
+      res
+        .status(200)
+        .json({ msg: `users with bookId: ${bookId} found`, user: result });
     } else {
       res.status(400).json({ msg: "book not found", user: result });
     }
   } catch (error) {
-    res.status(500).json({msg: error.message});
+    res.status(500).json({ msg: error.message });
   }
 });
 
 module.exports = operationRoute;
+
+// method book id increment
+const generateNextBookId = async () => {
+  // Get the last added book sorted by `bookId` in descending order
+  const lastBook = await Book.findOne().sort({ bookId: -1 });
+
+  if (!lastBook) {
+    return "B@001"; // First book
+  }
+
+  const lastId = lastBook.bookId; // e.g., B@009
+
+  // Extract the number part and increment it
+  const number = parseInt(lastId.split("@")[1]); // 9
+  const nextNumber = number + 1;
+
+  // Format with leading zeros
+  const padded = String(nextNumber).padStart(3, "0"); // 010
+
+  return `B@${padded}`; // B@010
+};
