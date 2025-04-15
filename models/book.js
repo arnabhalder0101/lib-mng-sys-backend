@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const bookSchema = mongoose.Schema({
-  // just like a email --> B@1 / B@2 ...
+  // just like a email --> B@001 / B@002 ...
   bookId: {
     type: String,
     required: true,
