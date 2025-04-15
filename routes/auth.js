@@ -6,7 +6,8 @@ const userRoute = express.Router();
 
 userRoute.post("/api/signup", async (req, res) => {
   try {
-    const { fullName, email, password } = req.body;
+    const { fullName, email, password, gender, profilePic, state, city } =
+      req.body;
     const existingEmail = await User.findOne({ email });
 
     if (existingEmail) {
@@ -19,11 +20,15 @@ userRoute.post("/api/signup", async (req, res) => {
         fullName,
         email,
         password: hashedPass,
+        gender,
+        profilePic,
+        state,
+        city,
       }).save();
 
       return res.status(200).json({
-        user: user,
         msg: "User registered",
+        user: user,
       });
     }
   } catch (error) {

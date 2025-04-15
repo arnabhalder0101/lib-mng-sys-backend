@@ -101,11 +101,11 @@ operationRoute.post("/api/books/add", async (req, res) => {
 //
 
 // admin Feature-->
-// find a user with user id
+// find a user with email id(that is library user id)
 operationRoute.get("/api/users", async (req, res) => {
-  const { id } = req.body;
+  const { email } = req.body;
   try {
-    let result = await User.findOne({ _id: id });
+    let result = await User.findOne({ email });
     if (result) {
       res.status(200).json({ msg: "user found", user: result });
     } else {
