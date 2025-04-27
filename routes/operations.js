@@ -2,6 +2,7 @@ const express = require("express");
 const User = require("../models/user");
 const Book = require("../models/book");
 const e = require("express");
+const userRoute = require("./auth");
 
 const operationRoute = express.Router();
 
@@ -9,8 +10,10 @@ const operationRoute = express.Router();
 operationRoute.post("/api/books/take", async (req, res) => {
   const { email, bookId } = req.body;
 
-  if (!email || !bookId ) {
-    return res.status(400).json({ msg: "email, bookId -> this fields are needed" });
+  if (!email || !bookId) {
+    return res
+      .status(400)
+      .json({ msg: "email, bookId -> this fields are needed" });
   }
   try {
     let book = await Book.findOne({ bookId: bookId });
@@ -67,7 +70,9 @@ operationRoute.post("/api/books/add", async (req, res) => {
   const { bookName, bookAuthor, quantity } = req.body;
 
   if (!bookName || !bookAuthor || quantity === undefined) {
-    return res.status(400).json({ msg: "bookName, bookAuthor, quantity -> fields are required" });
+    return res
+      .status(400)
+      .json({ msg: "bookName, bookAuthor, quantity -> fields are required" });
   }
 
   let name = bookName.toUpperCase();
@@ -141,10 +146,12 @@ operationRoute.get("/api/books/:bookId", async (req, res) => {
 operationRoute.post("/api/return", async (req, res) => {
   try {
     const { email, bookId } = req.body;
- 
-  if (!email || !bookId ) {
-    return res.status(400).json({ msg: "email, bookId -> this fields are needed" });
-  }
+
+    if (!email || !bookId) {
+      return res
+        .status(400)
+        .json({ msg: "email, bookId -> this fields are needed" });
+    }
     // removing from user --
     let result = await User.updateOne(
       { email: email },
@@ -169,8 +176,8 @@ operationRoute.post("/api/return", async (req, res) => {
 // find a user with email id(that is library user id)
 operationRoute.get("/api/users", async (req, res) => {
   const { email } = req.body;
-  
-  if (!email ) {
+
+  if (!email) {
     return res.status(400).json({ msg: "email -> this field is needed" });
   }
   try {
@@ -189,21 +196,19 @@ operationRoute.get("/api/users", async (req, res) => {
 // find all users who took a book by --> book id
 operationRoute.get("/api/books", async (req, res) => {
   const { bookId } = req.body;
-  
-  if ( !bookId ) {
+
+  if (!bookId) {
     return res.status(400).json({ msg: "bookId -> this field is needed" });
   }
   try {
     let result = await User.find({ borrowedBookIds: bookId });
     let count = result.length;
     if (count > 0) {
-      res
-        .status(200)
-        .json({
-          msg: `users with bookId:${bookId} found`,
-          count,
-          user: result,
-        });
+      res.status(200).json({
+        msg: `users with bookId:${bookId} found`,
+        count,
+        user: result,
+      });
     } else {
       res.status(400).json({ msg: "not found", count, user: result });
     }
@@ -225,6 +230,42 @@ operationRoute.get("/api/users/all", async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ msg: error.message });
+  }
+});
+
+//edit full name
+userRoute.post("/api/update-name", async (req, res) => {
+  const { email, newName } = req.body;
+
+  if (!email || !newName) {
+    return res
+      .status(400)
+      .json({ msg: "email, newName -> this fields are needed" });
+  }
+  try {
+    // const user = await User.findOne({ email });
+
+    // if (!user) {
+    //   return res.status(400).json({ msg: "Not found user" });
+    // } else {
+    const updatedUser = await User.findOneAndUpdate(
+      { email: email },
+      { $set: { fullName: newName } },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(400).json({ msg: "No user found" });
+    }
+
+    const { password, ...userWithoutPassword } = updatedUser._doc;
+
+    return res
+      .status(200)
+      .json({ msg: "name successfully updated", user: userWithoutPassword });
+    // }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
