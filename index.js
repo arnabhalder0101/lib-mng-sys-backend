@@ -1,5 +1,6 @@
 // import express module
 const express = require('express');
+const cors = require('cors')
 const helloRouter = require('./routes/hello');
 const authRouter = require('./routes/auth');
 const operationRouter = require('./routes/operations')
@@ -23,6 +24,7 @@ const DB = "mongodb+srv://arnab:library@cluster0.euwjulq.mongodb.net/?retryWrite
 // middleware to register the imported hello route
 app.use(express.json())
 
+app.use(cors())
 app.use(helloRouter);
 app.use(authRouter);
 app.use(operationRouter);
