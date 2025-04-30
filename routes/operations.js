@@ -175,7 +175,7 @@ operationRoute.post("/api/return", async (req, res) => {
 // admin Feature-->
 // find a user with email id(that is library user id)
 operationRoute.get("/api/users", async (req, res) => {
-  const { email } = req.body;
+  const { email } = req.query;
 
   if (!email) {
     return res.status(400).json({ msg: "email -> this field is needed" });
@@ -195,7 +195,7 @@ operationRoute.get("/api/users", async (req, res) => {
 // admin -->
 // find all users who took a book by --> book id
 operationRoute.get("/api/books", async (req, res) => {
-  const { bookId } = req.body;
+  const { bookId } = req.query;
 
   if (!bookId) {
     return res.status(400).json({ msg: "bookId -> this field is needed" });
