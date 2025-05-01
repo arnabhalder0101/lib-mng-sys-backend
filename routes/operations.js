@@ -269,6 +269,42 @@ userRoute.post("/api/update-name", async (req, res) => {
   }
 });
 
+// Admin Login Api --
+// Allowed admin emails
+const allowedAdminEmails = [
+  "admin1@lib.com",
+  "admin2@lib.com",
+  "admin3@lib.com",
+];
+
+// Default admin password
+const defaultAdminPassword = "admin123";
+
+// POST /admin login
+userRoute.post("/api/admin/signin", (req, res) => {
+  const { email, password } = req.body;
+  try {
+    // Check if email and password are provided
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Email and password fields are required." });
+    }
+
+    // Check if the email is in the allowed list and password matches
+    if (
+      allowedAdminEmails.includes(email) &&
+      password === defaultAdminPassword
+    ) {
+      return res.status(200).json({ message: "Admin login successful." });
+    } else {
+      return res.status(400).json({ message: "Invalid admin email or password." });
+    }
+  } catch (error) {
+    return res.status(500).json(`Error: ${error.message}`);
+  }
+});
+
 // method book id increment
 const generateNextBookId = async () => {
   // Get the last added book sorted by `bookId` in descending order
