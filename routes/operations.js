@@ -107,7 +107,10 @@ operationRoute.post("/api/books/add", async (req, res) => {
 
       res
         .status(201)
-        .json({ msg: `book ${bookName} is successfully added`, book: newBook });
+        .json({
+          msg: `Book ${bookName} Author ${bookAuthor} is successfully added`,
+          book: newBook,
+        });
     }
   } catch (error) {
     res.status(500).json({
@@ -122,7 +125,7 @@ operationRoute.get("/api/books/all", async (req, res) => {
     let books = await Book.find(); // returns a []
     let count = books.length;
     if (count > 0) {
-      return res.status(200).json({ msg: `books found`, count, books });
+      return res.status(200).json({ msg: `Books found`, count, books });
     } else {
       return res.status(400).json({ msg: "Not Found", books });
     }
@@ -137,9 +140,9 @@ operationRoute.get("/api/books/:bookId", async (req, res) => {
     const { bookId } = req.params;
     let book = await Book.findOne({ bookId }); // return a obj..or null
     if (!book) {
-      return res.status(400).json({ msg: `book ${bookId} not found` });
+      return res.status(400).json({ msg: `Book ${bookId} not found` });
     } else {
-      return res.status(200).json({ msg: `book found`, book });
+      return res.status(200).json({ msg: `Book found`, book });
     }
   } catch (error) {
     return res.status(500).json({ msg: error.message });

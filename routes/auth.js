@@ -41,24 +41,26 @@ userRoute.post("/api/signup", async (req, res) => {
 userRoute.post("/api/signin", async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password ) {
-      return res.status(400).json({ msg: "email, password -> this fields are needed" });
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ msg: "email, password -> this fields are needed" });
     }
     const userFound = await User.findOne({ email });
 
     if (!userFound) {
-      return res.status(400).json({ msg: "user not exists." });
+      return res.status(400).json({ msg: `User with this Email: ${email} not exists.` });
     } else {
       const isMatched = await bcrypt.compare(password, userFound.password);
       if (!isMatched) {
-        return res.status(400).json({ msg: "incorrect password" });
+        return res.status(400).json({ msg: "Incorrect Password" });
       } else {
         const token = jwt.sign({ id: userFound._id }, "passwordKey");
         const { password, ...userWithoutPassword } = userFound._doc;
 
         return res
           .status(200)
-          .json({ msg: "user validated", token, user: userWithoutPassword });
+          .json({ msg: "User validated", token, user: userWithoutPassword });
       }
     }
   } catch (error) {
