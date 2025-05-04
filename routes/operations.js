@@ -85,8 +85,12 @@ operationRoute.post("/api/books/add", async (req, res) => {
     });
 
     if (existingBook) {
+      // Update quantity
+      existingBook.quantity += quantity;
+      await existingBook.save();
+
       res.status(400).json({
-        msg: `${bookName}, written by ${bookAuthor} already exists`,
+        msg: `Same book with Author Exists. Quantity updated!\n ${bookName}, written by ${bookAuthor} now has quantity ${existingBook.quantity}`,
         book: existingBook,
       });
     } else {
