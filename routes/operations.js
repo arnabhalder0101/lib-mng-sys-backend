@@ -163,9 +163,11 @@ operationRoute.post("/api/return", async (req, res) => {
 
       return res
         .status(200)
-        .json({ msg: `book ${bookId} returned to shelf` }, result);
+        .json({ msg: `Book ${bookId} returned to shelf` }, result);
     } else {
-      return res.status(400).json({ msg: "not found", result });
+      return res
+        .status(400)
+        .json({ msg: `Book with id ${bookId} not found`, result });
     }
   } catch (error) {
     return res.status(500).json({ msg: error.message });
@@ -183,9 +185,9 @@ operationRoute.get("/api/users", async (req, res) => {
   try {
     let result = await User.findOne({ email });
     if (result) {
-      res.status(200).json({ msg: "user found", user: result });
+      res.status(200).json({ msg: "User found", user: result });
     } else {
-      res.status(400).json({ msg: "user not found", user: result });
+      res.status(400).json({ msg: "User not found", user: result });
     }
   } catch (error) {
     res.status(500).json({ msg: error.message });
@@ -205,12 +207,14 @@ operationRoute.get("/api/books", async (req, res) => {
     let count = result.length;
     if (count > 0) {
       res.status(200).json({
-        msg: `users with bookId:${bookId} found`,
+        msg: `Users with bookId:${bookId} found`,
         count,
         user: result,
       });
     } else {
-      res.status(400).json({ msg: "not found", count, user: result });
+      res
+        .status(400)
+        .json({ msg: `No User Took this Book ${bookId}`, count, user: result });
     }
   } catch (error) {
     res.status(500).json({ msg: error.message });
@@ -224,9 +228,9 @@ operationRoute.get("/api/users/all", async (req, res) => {
     let result = await User.find();
     let count = result.length;
     if (count > 0) {
-      res.status(200).json({ msg: `users found`, count, users: result });
+      res.status(200).json({ msg: `Users found`, count, users: result });
     } else {
-      res.status(400).json({ msg: "not found", user: result });
+      res.status(400).json({ msg: "Users not found", user: result });
     }
   } catch (error) {
     res.status(500).json({ msg: error.message });
@@ -298,7 +302,9 @@ userRoute.post("/api/admin/signin", (req, res) => {
     ) {
       return res.status(200).json({ message: "Admin login successful." });
     } else {
-      return res.status(400).json({ message: "Invalid admin email or password." });
+      return res
+        .status(400)
+        .json({ message: "Invalid admin email or password." });
     }
   } catch (error) {
     return res.status(500).json(`Error: ${error.message}`);
